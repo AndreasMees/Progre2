@@ -1,29 +1,25 @@
-@model IEnumerable<KooliProjekt.Data.InvoiceLine>
-
+@model KooliProjekt.Data.PagedResult<KooliProjekt.Data.InvoiceLine>
 @{
     ViewData["Title"] = "Invoice Lines";
 }
-
 <h1>Invoice Lines</h1>
-
 <p>
     <a asp-action="Create" class="btn btn-primary">Create New Invoice Line</a>
 </p>
-
 <table class="table table-striped">
     <thead>
         <tr>
-            <th>@Html.DisplayNameFor(model => model.LineItem)</th>
-            <th>@Html.DisplayNameFor(model => model.UnitPrice)</th>
-            <th>@Html.DisplayNameFor(model => model.Quantity)</th>
-            <th>@Html.DisplayNameFor(model => model.VatRate)</th>
-            <th>@Html.DisplayNameFor(model => model.Total)</th>
+            <th>Line Item</th>
+            <th>Unit Price</th>
+            <th>Quantity</th>
+            <th>VAT Rate</th>
+            <th>Total</th>
             <th>Invoice</th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var item in Model.Results)
         {
             <tr>
                 <td>@Html.DisplayFor(modelItem => item.LineItem)</td>
@@ -41,3 +37,4 @@
         }
     </tbody>
 </table>
+@(await Component.InvokeAsync<KooliProjekt.Components.PagerViewComponent>(Model))

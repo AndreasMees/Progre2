@@ -14,9 +14,9 @@ namespace KooliProjekt.Controllers
         }
 
         // GET: Vehicles
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            return View(await _context.Vehicles.ToListAsync());
+            return View(await _context.Vehicles.GetPagedAsync(page, 5));
         }
 
         // GET: Vehicles/Details/5

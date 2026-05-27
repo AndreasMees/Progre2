@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -19,13 +15,13 @@ namespace KooliProjekt.Controllers
         }
 
         // GET: Operations
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
             var operations = _context.Operations
                 .Include(o => o.Vehicle)
                 .Include(o => o.OperationType)
                 .Include(o => o.AssignedEmployee);
-            return View(await operations.ToListAsync());
+            return View(await operations.GetPagedAsync(page, 5));
         }
 
         // GET: Operations/Details/5
@@ -55,11 +51,11 @@ namespace KooliProjekt.Controllers
             ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "LicensePlate");
             ViewData["OperationTypeId"] = new SelectList(_context.OperationTypes, "Id", "Name");
             ViewData["AssignedEmployeeId"] = new SelectList(_context.Users, "Id", "UserName");
-            
+
             var operation = new Operation();
             operation.Date = DateTime.Now;
             operation.Status = OperationStatus.Pending;
-            
+
             return View(operation);
         }
 
@@ -68,17 +64,21 @@ namespace KooliProjekt.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,VehicleId,OperationTypeId,AssignedEmployeeId,Date,Status,Cost")] Operation operation)
         {
+            ModelState.Remove("Vehicle");
+            ModelState.Remove("OperationType");
+            ModelState.Remove("AssignedEmployee");
+
             if (ModelState.IsValid)
             {
                 _context.Add(operation);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            
+
             ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "LicensePlate", operation.VehicleId);
             ViewData["OperationTypeId"] = new SelectList(_context.OperationTypes, "Id", "Name", operation.OperationTypeId);
             ViewData["AssignedEmployeeId"] = new SelectList(_context.Users, "Id", "UserName", operation.AssignedEmployeeId);
-            
+
             return View(operation);
         }
 
@@ -95,11 +95,11 @@ namespace KooliProjekt.Controllers
             {
                 return NotFound();
             }
-            
+
             ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "LicensePlate", operation.VehicleId);
             ViewData["OperationTypeId"] = new SelectList(_context.OperationTypes, "Id", "Name", operation.OperationTypeId);
             ViewData["AssignedEmployeeId"] = new SelectList(_context.Users, "Id", "UserName", operation.AssignedEmployeeId);
-            
+
             return View(operation);
         }
 
@@ -112,6 +112,10 @@ namespace KooliProjekt.Controllers
             {
                 return NotFound();
             }
+
+            ModelState.Remove("Vehicle");
+            ModelState.Remove("OperationType");
+            ModelState.Remove("AssignedEmployee");
 
             if (ModelState.IsValid)
             {
@@ -133,11 +137,11 @@ namespace KooliProjekt.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            
+
             ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "LicensePlate", operation.VehicleId);
             ViewData["OperationTypeId"] = new SelectList(_context.OperationTypes, "Id", "Name", operation.OperationTypeId);
             ViewData["AssignedEmployeeId"] = new SelectList(_context.Users, "Id", "UserName", operation.AssignedEmployeeId);
-            
+
             return View(operation);
         }
 

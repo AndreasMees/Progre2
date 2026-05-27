@@ -1,15 +1,11 @@
-@model IEnumerable<KooliProjekt.Data.Operation>
-
+@model KooliProjekt.Data.PagedResult<KooliProjekt.Data.Operation>
 @{
     ViewData["Title"] = "Operations";
 }
-
 <h1>Operations</h1>
-
 <p>
     <a asp-action="Create" class="btn btn-primary">Create New Operation</a>
 </p>
-
 <table class="table table-striped">
     <thead>
         <tr>
@@ -23,7 +19,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var item in Model.Results)
         {
             <tr>
                 <td>@item.Vehicle?.LicensePlate</td>
@@ -54,3 +50,4 @@
         }
     </tbody>
 </table>
+@(await Component.InvokeAsync<KooliProjekt.Components.PagerViewComponent>(Model))

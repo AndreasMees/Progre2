@@ -1,26 +1,22 @@
-@model IEnumerable<KooliProjekt.Data.Vehicle>
-
+@model KooliProjekt.Data.PagedResult<KooliProjekt.Data.Vehicle>
 @{
     ViewData["Title"] = "Vehicles";
 }
-
 <h1>Vehicles</h1>
-
 <p>
     <a asp-action="Create" class="btn btn-primary">Add New Vehicle</a>
 </p>
-
 <table class="table table-striped">
     <thead>
         <tr>
-            <th>@Html.DisplayNameFor(model => model.Manufacturer)</th>
-            <th>@Html.DisplayNameFor(model => model.Model)</th>
-            <th>@Html.DisplayNameFor(model => model.LicensePlate)</th>
+            <th>Manufacturer</th>
+            <th>Model</th>
+            <th>License Plate</th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @foreach (var item in Model.Results)
         {
             <tr>
                 <td>@Html.DisplayFor(modelItem => item.Manufacturer)</td>
@@ -35,3 +31,4 @@
         }
     </tbody>
 </table>
+@(await Component.InvokeAsync<KooliProjekt.Components.PagerViewComponent>(Model))

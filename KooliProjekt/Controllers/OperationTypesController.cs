@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KooliProjekt.Data;
 
@@ -19,9 +14,9 @@ namespace KooliProjekt.Controllers
         }
 
         // GET: OperationTypes
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            return View(await _context.OperationTypes.ToListAsync());
+            return View(await _context.OperationTypes.GetPagedAsync(page, 5));
         }
 
         // GET: OperationTypes/Details/5

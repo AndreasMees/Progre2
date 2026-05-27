@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -19,10 +15,10 @@ namespace KooliProjekt.Controllers
         }
 
         // GET: InvoiceLines
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
             var invoiceLines = _context.InvoiceLines.Include(i => i.Invoice);
-            return View(await invoiceLines.ToListAsync());
+            return View(await invoiceLines.GetPagedAsync(page, 5));
         }
 
         // GET: InvoiceLines/Details/5
@@ -48,11 +44,11 @@ namespace KooliProjekt.Controllers
         public IActionResult Create()
         {
             ViewData["InvoiceId"] = new SelectList(_context.Invoices, "Id", "InvoiceNo");
-            
+
             var invoiceLine = new InvoiceLine();
             invoiceLine.Quantity = 1;
             invoiceLine.VatRate = 0.2m;
-            
+
             return View(invoiceLine);
         }
 
@@ -61,13 +57,15 @@ namespace KooliProjekt.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,LineItem,UnitPrice,Quantity,VatRate,Total,InvoiceId")] InvoiceLine invoiceLine)
         {
+            ModelState.Remove("Invoice");
+
             if (ModelState.IsValid)
             {
                 _context.Add(invoiceLine);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            
+
             ViewData["InvoiceId"] = new SelectList(_context.Invoices, "Id", "InvoiceNo", invoiceLine.InvoiceId);
             return View(invoiceLine);
         }
@@ -85,7 +83,7 @@ namespace KooliProjekt.Controllers
             {
                 return NotFound();
             }
-            
+
             ViewData["InvoiceId"] = new SelectList(_context.Invoices, "Id", "InvoiceNo", invoiceLine.InvoiceId);
             return View(invoiceLine);
         }
@@ -99,6 +97,8 @@ namespace KooliProjekt.Controllers
             {
                 return NotFound();
             }
+
+            ModelState.Remove("Invoice");
 
             if (ModelState.IsValid)
             {
@@ -120,7 +120,7 @@ namespace KooliProjekt.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            
+
             ViewData["InvoiceId"] = new SelectList(_context.Invoices, "Id", "InvoiceNo", invoiceLine.InvoiceId);
             return View(invoiceLine);
         }
