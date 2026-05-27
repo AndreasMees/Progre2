@@ -1,0 +1,43 @@
+@model IEnumerable<KooliProjekt.Data.InvoiceLine>
+
+@{
+    ViewData["Title"] = "Invoice Lines";
+}
+
+<h1>Invoice Lines</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Invoice Line</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.LineItem)</th>
+            <th>@Html.DisplayNameFor(model => model.UnitPrice)</th>
+            <th>@Html.DisplayNameFor(model => model.Quantity)</th>
+            <th>@Html.DisplayNameFor(model => model.VatRate)</th>
+            <th>@Html.DisplayNameFor(model => model.Total)</th>
+            <th>Invoice</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.LineItem)</td>
+                <td>@Html.DisplayFor(modelItem => item.UnitPrice)</td>
+                <td>@Html.DisplayFor(modelItem => item.Quantity)</td>
+                <td>@item.VatRate.ToString("P")</td>
+                <td>@Html.DisplayFor(modelItem => item.Total)</td>
+                <td>@item.Invoice?.InvoiceNo</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Edit</a>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Details</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

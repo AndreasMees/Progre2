@@ -1,0 +1,70 @@
+@model KooliProjekt.Data.Invoice
+
+@{
+    ViewData["Title"] = "Invoice Details";
+}
+
+<h1>Invoice Details</h1>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.InvoiceNo)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.InvoiceNo)</dd>
+        
+        <dt class="col-sm-2">Customer</dt>
+        <dd class="col-sm-10">@Model.Customer?.Name</dd>
+        
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.InvoiceDate)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.InvoiceDate)</dd>
+        
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.DueDate)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.DueDate)</dd>
+        
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Subtotal)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Subtotal)</dd>
+        
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Shipping)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Shipping)</dd>
+        
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.GrandTotal)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.GrandTotal)</dd>
+    </dl>
+</div>
+
+<h3>Invoice Lines</h3>
+@if (Model.InvoiceLines != null && Model.InvoiceLines.Any())
+{
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th>Line Item</th>
+                <th>Unit Price</th>
+                <th>Quantity</th>
+                <th>VAT Rate</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var line in Model.InvoiceLines)
+            {
+                <tr>
+                    <td>@line.LineItem</td>
+                    <td>@line.UnitPrice</td>
+                    <td>@line.Quantity</td>
+                    <td>@line.VatRate.ToString("P")</td>
+                    <td>@line.Total</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No line items for this invoice.</p>
+}
+
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-warning">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>

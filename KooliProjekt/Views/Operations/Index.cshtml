@@ -1,0 +1,56 @@
+@model IEnumerable<KooliProjekt.Data.Operation>
+
+@{
+    ViewData["Title"] = "Operations";
+}
+
+<h1>Operations</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Operation</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Vehicle</th>
+            <th>Operation Type</th>
+            <th>Assigned Employee</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Cost</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Vehicle?.LicensePlate</td>
+                <td>@item.OperationType?.Name</td>
+                <td>@item.AssignedEmployee?.UserName</td>
+                <td>@Html.DisplayFor(modelItem => item.Date)</td>
+                <td>
+                    @if (item.Status == KooliProjekt.Data.OperationStatus.Pending)
+                    {
+                        <span class="badge bg-warning">Pending</span>
+                    }
+                    else if (item.Status == KooliProjekt.Data.OperationStatus.InProgress)
+                    {
+                        <span class="badge bg-info">In Progress</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Completed</span>
+                    }
+                </td>
+                <td>@Html.DisplayFor(modelItem => item.Cost)</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Edit</a>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Details</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
