@@ -1,4 +1,5 @@
 using KooliProjekt.Data;
+using KooliProjekt.Data.Repositories;
 using KooliProjekt.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,16 @@ namespace KooliProjekt
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddControllersWithViews();
 
-            // Register services
+            // Repositories
+            builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+            builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
+            builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+            builder.Services.AddScoped<IInvoiceLineRepository, InvoiceLineRepository>();
+            builder.Services.AddScoped<IOperationRepository, OperationRepository>();
+            builder.Services.AddScoped<IOperationTypeRepository, OperationTypeRepository>();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // Services
             builder.Services.AddScoped<InvoiceNumberService>();
             builder.Services.AddScoped<ICustomerService, CustomerService>();
             builder.Services.AddScoped<IVehicleService, VehicleService>();
@@ -30,7 +40,6 @@ namespace KooliProjekt
 
             var app = builder.Build();
 
-            // Uuenda andmebaas ja genereeri andmed (ainult Debug buildis)
 #if DEBUG
             using (var scope = app.Services.CreateScope())
             {

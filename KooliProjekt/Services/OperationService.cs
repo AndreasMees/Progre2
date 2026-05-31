@@ -1,52 +1,54 @@
 using KooliProjekt.Data;
-using Microsoft.EntityFrameworkCore;
+using KooliProjekt.Data.Repositories;
 
 namespace KooliProjekt.Services
 {
     public class OperationService : IOperationService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _uow;
 
-        public OperationService(ApplicationDbContext context)
+        public OperationService(IUnitOfWork uow)
         {
-            _context = context;
+            _uow = uow;
         }
 
         public async Task<PagedResult<Operation>> List(int page, int pageSize)
         {
-            return await _context.Operations
-                .Include(o => o.Vehicle)
-                .Include(o => o.OperationType)
-                .Include(o => o.AssignedEmployee)
-                .GetPagedAsync(page, pageSize);
+            return await _uow.OperationRepository.List(page, pageSize);
         }
 
         public async Task<Operation> Get(int id)
         {
-            return await _context.Operations
-                .Include(o => o.Vehicle)
-                .Include(o => o.OperationType)
-                .Include(o => o.AssignedEmployee)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            return await _uow.OperationRepository.Get(id);
         }
 
         public async Task Save(Operation operation)
         {
-            if (operation.Id == 0)
-                _context.Add(operation);
-            else
-                _context.Update(operation);
-
-            await _context.SaveChangesAsync();
+            await _uow.BeginTransaction();
+            try
+            {
+                await _uow.OperationRepository.Save(operation);
+                await _uow.Commit();
+            }
+            catch
+            {
+                await _uow.Rollback();
+                throw;
+            }
         }
 
         public async Task Delete(int id)
         {
-            var operation = await _context.Operations.FindAsync(id);
-            if (operation != null)
+            await _uow.BeginTransaction();
+            try
             {
-                _context.Operations.Remove(operation);
-                await _context.SaveChangesAsync();
+                await _uow.OperationRepository.Delete(id);
+                await _uow.Commit();
+            }
+            catch
+            {
+                await _uow.Rollback();
+                throw;
             }
         }
     }

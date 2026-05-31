@@ -3,9 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace KooliProjekt.Data
 {
-    public class InvoiceLine
+    public class InvoiceLine : Entity
     {
-        public int Id { get; set; }
+        
 
         [Required]
         [StringLength(255)]

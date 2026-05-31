@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 namespace KooliProjekt.Data
 {
     [Index(nameof(Name), IsUnique = true)]
-    public class OperationType
+    public class OperationType : Entity
     {
-        public int Id { get; set; }
+        
 
         [Required]
         [StringLength(100)]

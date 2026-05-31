@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 namespace KooliProjekt.Data
 {
     [Index(nameof(LicensePlate), IsUnique = true)]
-    public class Vehicle
+    public class Vehicle : Entity
     {
-        public int Id { get; set; }
+        
 
         [Required]
         [StringLength(100)]

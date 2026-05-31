@@ -1,49 +1,54 @@
 using KooliProjekt.Data;
-using Microsoft.EntityFrameworkCore;
+using KooliProjekt.Data.Repositories;
 
 namespace KooliProjekt.Services
 {
     public class InvoiceService : IInvoiceService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _uow;
 
-        public InvoiceService(ApplicationDbContext context)
+        public InvoiceService(IUnitOfWork uow)
         {
-            _context = context;
+            _uow = uow;
         }
 
         public async Task<PagedResult<Invoice>> List(int page, int pageSize)
         {
-            return await _context.Invoices
-                .Include(i => i.Customer)
-                .GetPagedAsync(page, pageSize);
+            return await _uow.InvoiceRepository.List(page, pageSize);
         }
 
         public async Task<Invoice> Get(int id)
         {
-            return await _context.Invoices
-                .Include(i => i.Customer)
-                .Include(i => i.InvoiceLines)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            return await _uow.InvoiceRepository.Get(id);
         }
 
         public async Task Save(Invoice invoice)
         {
-            if (invoice.Id == 0)
-                _context.Add(invoice);
-            else
-                _context.Update(invoice);
-
-            await _context.SaveChangesAsync();
+            await _uow.BeginTransaction();
+            try
+            {
+                await _uow.InvoiceRepository.Save(invoice);
+                await _uow.Commit();
+            }
+            catch
+            {
+                await _uow.Rollback();
+                throw;
+            }
         }
 
         public async Task Delete(int id)
         {
-            var invoice = await _context.Invoices.FindAsync(id);
-            if (invoice != null)
+            await _uow.BeginTransaction();
+            try
             {
-                _context.Invoices.Remove(invoice);
-                await _context.SaveChangesAsync();
+                await _uow.InvoiceRepository.Delete(id);
+                await _uow.Commit();
+            }
+            catch
+            {
+                await _uow.Rollback();
+                throw;
             }
         }
     }

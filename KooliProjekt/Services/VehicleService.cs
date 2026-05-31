@@ -1,44 +1,54 @@
 using KooliProjekt.Data;
-using Microsoft.EntityFrameworkCore;
+using KooliProjekt.Data.Repositories;
 
 namespace KooliProjekt.Services
 {
     public class VehicleService : IVehicleService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _uow;
 
-        public VehicleService(ApplicationDbContext context)
+        public VehicleService(IUnitOfWork uow)
         {
-            _context = context;
+            _uow = uow;
         }
 
         public async Task<PagedResult<Vehicle>> List(int page, int pageSize)
         {
-            return await _context.Vehicles.GetPagedAsync(page, pageSize);
+            return await _uow.VehicleRepository.List(page, pageSize);
         }
 
         public async Task<Vehicle> Get(int id)
         {
-            return await _context.Vehicles.FirstOrDefaultAsync(m => m.Id == id);
+            return await _uow.VehicleRepository.Get(id);
         }
 
         public async Task Save(Vehicle vehicle)
         {
-            if (vehicle.Id == 0)
-                _context.Add(vehicle);
-            else
-                _context.Update(vehicle);
-
-            await _context.SaveChangesAsync();
+            await _uow.BeginTransaction();
+            try
+            {
+                await _uow.VehicleRepository.Save(vehicle);
+                await _uow.Commit();
+            }
+            catch
+            {
+                await _uow.Rollback();
+                throw;
+            }
         }
 
         public async Task Delete(int id)
         {
-            var vehicle = await _context.Vehicles.FindAsync(id);
-            if (vehicle != null)
+            await _uow.BeginTransaction();
+            try
             {
-                _context.Vehicles.Remove(vehicle);
-                await _context.SaveChangesAsync();
+                await _uow.VehicleRepository.Delete(id);
+                await _uow.Commit();
+            }
+            catch
+            {
+                await _uow.Rollback();
+                throw;
             }
         }
     }

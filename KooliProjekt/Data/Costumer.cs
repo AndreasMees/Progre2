@@ -6,9 +6,9 @@ namespace KooliProjekt.Data
     [Index(nameof(Name), IsUnique = true)]
     [Index(nameof(Email), IsUnique = true)]
     [Index(nameof(Phone), IsUnique = true)]
-    public class Customer
+    public class Customer : Entity
     {
-        public int Id { get; set; }
+        
 
         [Required]
         [StringLength(100)]

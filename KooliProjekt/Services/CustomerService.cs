@@ -1,44 +1,54 @@
 using KooliProjekt.Data;
-using Microsoft.EntityFrameworkCore;
+using KooliProjekt.Data.Repositories;
 
 namespace KooliProjekt.Services
 {
     public class CustomerService : ICustomerService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _uow;
 
-        public CustomerService(ApplicationDbContext context)
+        public CustomerService(IUnitOfWork uow)
         {
-            _context = context;
+            _uow = uow;
         }
 
         public async Task<PagedResult<Customer>> List(int page, int pageSize)
         {
-            return await _context.Customers.GetPagedAsync(page, pageSize);
+            return await _uow.CustomerRepository.List(page, pageSize);
         }
 
         public async Task<Customer> Get(int id)
         {
-            return await _context.Customers.FirstOrDefaultAsync(m => m.Id == id);
+            return await _uow.CustomerRepository.Get(id);
         }
 
         public async Task Save(Customer customer)
         {
-            if (customer.Id == 0)
-                _context.Add(customer);
-            else
-                _context.Update(customer);
-
-            await _context.SaveChangesAsync();
+            await _uow.BeginTransaction();
+            try
+            {
+                await _uow.CustomerRepository.Save(customer);
+                await _uow.Commit();
+            }
+            catch
+            {
+                await _uow.Rollback();
+                throw;
+            }
         }
 
         public async Task Delete(int id)
         {
-            var customer = await _context.Customers.FindAsync(id);
-            if (customer != null)
+            await _uow.BeginTransaction();
+            try
             {
-                _context.Customers.Remove(customer);
-                await _context.SaveChangesAsync();
+                await _uow.CustomerRepository.Delete(id);
+                await _uow.Commit();
+            }
+            catch
+            {
+                await _uow.Rollback();
+                throw;
             }
         }
     }

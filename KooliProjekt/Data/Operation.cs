@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Identity;
 
 namespace KooliProjekt.Data
 {
-    public class Operation
+    public class Operation : Entity
     {
-        public int Id { get; set; }
+        
 
         [Required]
         [Display(Name = "Vehicle")]
