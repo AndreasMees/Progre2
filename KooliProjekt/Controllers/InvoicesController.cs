@@ -10,9 +10,9 @@ namespace KooliProjekt.Controllers
     {
         private readonly IInvoiceService _invoiceService;
         private readonly ICustomerService _customerService;
-        private readonly InvoiceNumberService _invoiceNumberService;
+        private readonly IInvoiceNumberService _invoiceNumberService;
 
-        public InvoicesController(IInvoiceService invoiceService, ICustomerService customerService, InvoiceNumberService invoiceNumberService)
+        public InvoicesController(IInvoiceService invoiceService, ICustomerService customerService, IInvoiceNumberService invoiceNumberService)
         {
             _invoiceService = invoiceService;
             _customerService = customerService;

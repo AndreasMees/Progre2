@@ -3,7 +3,7 @@ using KooliProjekt.Data;
 
 namespace KooliProjekt.Services
 {
-    public class InvoiceNumberService
+    public class InvoiceNumberService : IInvoiceNumberService
     {
         private readonly ApplicationDbContext _context;
 

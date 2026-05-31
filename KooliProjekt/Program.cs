@@ -30,7 +30,7 @@ namespace KooliProjekt
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Services
-            builder.Services.AddScoped<InvoiceNumberService>();
+            builder.Services.AddScoped<IInvoiceNumberService, InvoiceNumberService>();
             builder.Services.AddScoped<ICustomerService, CustomerService>();
             builder.Services.AddScoped<IVehicleService, VehicleService>();
             builder.Services.AddScoped<IInvoiceService, InvoiceService>();
