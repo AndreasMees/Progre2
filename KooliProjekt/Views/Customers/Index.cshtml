@@ -1,4 +1,4 @@
-@model KooliProjekt.Data.PagedResult<KooliProjekt.Data.Customer>
+@model KooliProjekt.Models.CustomersIndexModel
 @{
     ViewData["Title"] = "Customers";
 }
@@ -6,6 +6,20 @@
 <p>
     <a asp-action="Create" class="btn btn-primary">Create New</a>
 </p>
+<form method="get">
+    <div class="form-group">
+        <label class="control-label">Keyword</label>
+        <input asp-for="Search.Keyword" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label class="control-label">Email</label>
+        <input asp-for="Search.Email" class="form-control" />
+    </div>
+    <div class="form-group mt-2">
+        <button class="btn btn-primary">Search</button>
+        <a asp-action="Index" class="btn btn-secondary">Reset</a>
+    </div>
+</form>
 <table class="table table-striped">
     <thead>
         <tr>
@@ -18,14 +32,14 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model.Results)
+        @foreach (var item in Model.Data.Results)
         {
             <tr>
-                <td>@Html.DisplayFor(modelItem => item.Name)</td>
-                <td>@Html.DisplayFor(modelItem => item.Address)</td>
-                <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                <td>@Html.DisplayFor(modelItem => item.Phone)</td>
-                <td>@Html.DisplayFor(modelItem => item.Discount)</td>
+                <td>@item.Name</td>
+                <td>@item.Address</td>
+                <td>@item.Email</td>
+                <td>@item.Phone</td>
+                <td>@item.Discount</td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Edit</a>
                     <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Details</a>
@@ -35,4 +49,4 @@
         }
     </tbody>
 </table>
-@(await Component.InvokeAsync<KooliProjekt.Components.PagerViewComponent>(Model))
+@(await Component.InvokeAsync<KooliProjekt.Components.PagerViewComponent>(Model.Data))

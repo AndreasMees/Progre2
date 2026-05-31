@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using KooliProjekt.Data;
+using KooliProjekt.Models;
 using KooliProjekt.Services;
 
 namespace KooliProjekt.Controllers
@@ -13,30 +14,26 @@ namespace KooliProjekt.Controllers
             _customerService = customerService;
         }
 
-        // GET: Customers
-        public async Task<IActionResult> Index(int page = 1)
+        public async Task<IActionResult> Index(int page = 1, CustomersIndexModel model = null)
         {
-            return View(await _customerService.List(page, 5));
+            model = model ?? new CustomersIndexModel();
+            model.Data = await _customerService.List(page, 5, model.Search);
+            return View(model);
         }
 
-        // GET: Customers/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-
             var customer = await _customerService.Get(id.Value);
             if (customer == null) return NotFound();
-
             return View(customer);
         }
 
-        // GET: Customers/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Customers/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,Address,Email,Phone,Discount")] Customer customer)
@@ -49,24 +46,19 @@ namespace KooliProjekt.Controllers
             return View(customer);
         }
 
-        // GET: Customers/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
-
             var customer = await _customerService.Get(id.Value);
             if (customer == null) return NotFound();
-
             return View(customer);
         }
 
-        // POST: Customers/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Address,Email,Phone,Discount")] Customer customer)
         {
             if (id != customer.Id) return NotFound();
-
             if (ModelState.IsValid)
             {
                 await _customerService.Save(customer);
@@ -75,18 +67,14 @@ namespace KooliProjekt.Controllers
             return View(customer);
         }
 
-        // GET: Customers/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
-
             var customer = await _customerService.Get(id.Value);
             if (customer == null) return NotFound();
-
             return View(customer);
         }
 
-        // POST: Customers/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

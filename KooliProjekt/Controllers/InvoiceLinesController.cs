@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using KooliProjekt.Data;
+using KooliProjekt.Models;
 using KooliProjekt.Services;
 
 namespace KooliProjekt.Controllers
@@ -16,24 +17,21 @@ namespace KooliProjekt.Controllers
             _invoiceService = invoiceService;
         }
 
-        // GET: InvoiceLines
-        public async Task<IActionResult> Index(int page = 1)
+        public async Task<IActionResult> Index(int page = 1, InvoiceLinesIndexModel model = null)
         {
-            return View(await _invoiceLineService.List(page, 5));
+            model = model ?? new InvoiceLinesIndexModel();
+            model.Data = await _invoiceLineService.List(page, 5, model.Search);
+            return View(model);
         }
 
-        // GET: InvoiceLines/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-
             var invoiceLine = await _invoiceLineService.Get(id.Value);
             if (invoiceLine == null) return NotFound();
-
             return View(invoiceLine);
         }
 
-        // GET: InvoiceLines/Create
         public async Task<IActionResult> Create()
         {
             var invoices = await _invoiceService.List(1, 1000);
@@ -46,7 +44,6 @@ namespace KooliProjekt.Controllers
             return View(invoiceLine);
         }
 
-        // POST: InvoiceLines/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,LineItem,UnitPrice,Quantity,VatRate,Total,InvoiceId")] InvoiceLine invoiceLine)
@@ -64,11 +61,9 @@ namespace KooliProjekt.Controllers
             return View(invoiceLine);
         }
 
-        // GET: InvoiceLines/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
-
             var invoiceLine = await _invoiceLineService.Get(id.Value);
             if (invoiceLine == null) return NotFound();
 
@@ -77,7 +72,6 @@ namespace KooliProjekt.Controllers
             return View(invoiceLine);
         }
 
-        // POST: InvoiceLines/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,LineItem,UnitPrice,Quantity,VatRate,Total,InvoiceId")] InvoiceLine invoiceLine)
@@ -97,18 +91,14 @@ namespace KooliProjekt.Controllers
             return View(invoiceLine);
         }
 
-        // GET: InvoiceLines/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
-
             var invoiceLine = await _invoiceLineService.Get(id.Value);
             if (invoiceLine == null) return NotFound();
-
             return View(invoiceLine);
         }
 
-        // POST: InvoiceLines/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

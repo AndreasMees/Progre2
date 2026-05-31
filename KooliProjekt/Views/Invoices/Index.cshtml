@@ -1,4 +1,4 @@
-@model KooliProjekt.Data.PagedResult<KooliProjekt.Data.Invoice>
+@model KooliProjekt.Models.InvoicesIndexModel
 @{
     ViewData["Title"] = "Invoices";
 }
@@ -6,6 +6,24 @@
 <p>
     <a asp-action="Create" class="btn btn-primary">Create New Invoice</a>
 </p>
+<form method="get">
+    <div class="form-group">
+        <label class="control-label">Keyword</label>
+        <input asp-for="Search.Keyword" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label class="control-label">From Date</label>
+        <input asp-for="Search.FromDate" class="form-control" type="date" />
+    </div>
+    <div class="form-group">
+        <label class="control-label">To Date</label>
+        <input asp-for="Search.ToDate" class="form-control" type="date" />
+    </div>
+    <div class="form-group mt-2">
+        <button class="btn btn-primary">Search</button>
+        <a asp-action="Index" class="btn btn-secondary">Reset</a>
+    </div>
+</form>
 <table class="table table-striped">
     <thead>
         <tr>
@@ -18,14 +36,14 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model.Results)
+        @foreach (var item in Model.Data.Results)
         {
             <tr>
-                <td>@Html.DisplayFor(modelItem => item.InvoiceNo)</td>
+                <td>@item.InvoiceNo</td>
                 <td>@item.Customer?.Name</td>
-                <td>@Html.DisplayFor(modelItem => item.InvoiceDate)</td>
-                <td>@Html.DisplayFor(modelItem => item.DueDate)</td>
-                <td>@Html.DisplayFor(modelItem => item.GrandTotal)</td>
+                <td>@item.InvoiceDate.ToShortDateString()</td>
+                <td>@item.DueDate.ToShortDateString()</td>
+                <td>@item.GrandTotal</td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Edit</a>
                     <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Details</a>
@@ -35,4 +53,4 @@
         }
     </tbody>
 </table>
-@(await Component.InvokeAsync<KooliProjekt.Components.PagerViewComponent>(Model))
+@(await Component.InvokeAsync<KooliProjekt.Components.PagerViewComponent>(Model.Data))

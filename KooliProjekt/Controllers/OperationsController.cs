@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Identity;
 using KooliProjekt.Data;
+using KooliProjekt.Models;
 using KooliProjekt.Services;
 
 namespace KooliProjekt.Controllers
@@ -21,24 +22,21 @@ namespace KooliProjekt.Controllers
             _userManager = userManager;
         }
 
-        // GET: Operations
-        public async Task<IActionResult> Index(int page = 1)
+        public async Task<IActionResult> Index(int page = 1, OperationsIndexModel model = null)
         {
-            return View(await _operationService.List(page, 5));
+            model = model ?? new OperationsIndexModel();
+            model.Data = await _operationService.List(page, 5, model.Search);
+            return View(model);
         }
 
-        // GET: Operations/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-
             var operation = await _operationService.Get(id.Value);
             if (operation == null) return NotFound();
-
             return View(operation);
         }
 
-        // GET: Operations/Create
         public async Task<IActionResult> Create()
         {
             var vehicles = await _vehicleService.List(1, 1000);
@@ -54,7 +52,6 @@ namespace KooliProjekt.Controllers
             return View(operation);
         }
 
-        // POST: Operations/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,VehicleId,OperationTypeId,AssignedEmployeeId,Date,Status,Cost")] Operation operation)
@@ -77,11 +74,9 @@ namespace KooliProjekt.Controllers
             return View(operation);
         }
 
-        // GET: Operations/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
-
             var operation = await _operationService.Get(id.Value);
             if (operation == null) return NotFound();
 
@@ -93,7 +88,6 @@ namespace KooliProjekt.Controllers
             return View(operation);
         }
 
-        // POST: Operations/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,VehicleId,OperationTypeId,AssignedEmployeeId,Date,Status,Cost")] Operation operation)
@@ -118,18 +112,14 @@ namespace KooliProjekt.Controllers
             return View(operation);
         }
 
-        // GET: Operations/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
-
             var operation = await _operationService.Get(id.Value);
             if (operation == null) return NotFound();
-
             return View(operation);
         }
 
-        // POST: Operations/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

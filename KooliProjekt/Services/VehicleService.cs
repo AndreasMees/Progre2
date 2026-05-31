@@ -1,5 +1,6 @@
 using KooliProjekt.Data;
 using KooliProjekt.Data.Repositories;
+using KooliProjekt.Search;
 
 namespace KooliProjekt.Services
 {
@@ -12,9 +13,9 @@ namespace KooliProjekt.Services
             _uow = uow;
         }
 
-        public async Task<PagedResult<Vehicle>> List(int page, int pageSize)
+        public async Task<PagedResult<Vehicle>> List(int page, int pageSize, VehicleSearch search = null)
         {
-            return await _uow.VehicleRepository.List(page, pageSize);
+            return await _uow.VehicleRepository.List(page, pageSize, search);
         }
 
         public async Task<Vehicle> Get(int id)

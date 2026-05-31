@@ -1,4 +1,4 @@
-@model KooliProjekt.Data.PagedResult<KooliProjekt.Data.Operation>
+@model KooliProjekt.Models.OperationsIndexModel
 @{
     ViewData["Title"] = "Operations";
 }
@@ -6,6 +6,22 @@
 <p>
     <a asp-action="Create" class="btn btn-primary">Create New Operation</a>
 </p>
+<form method="get">
+    <div class="form-group">
+        <label class="control-label">Keyword</label>
+        <input asp-for="Search.Keyword" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label class="control-label">Status</label>
+        <select asp-for="Search.Status" class="form-control" asp-items="Html.GetEnumSelectList<KooliProjekt.Data.OperationStatus>()">
+            <option value="">-- All --</option>
+        </select>
+    </div>
+    <div class="form-group mt-2">
+        <button class="btn btn-primary">Search</button>
+        <a asp-action="Index" class="btn btn-secondary">Reset</a>
+    </div>
+</form>
 <table class="table table-striped">
     <thead>
         <tr>
@@ -19,13 +35,13 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model.Results)
+        @foreach (var item in Model.Data.Results)
         {
             <tr>
                 <td>@item.Vehicle?.LicensePlate</td>
                 <td>@item.OperationType?.Name</td>
                 <td>@item.AssignedEmployee?.UserName</td>
-                <td>@Html.DisplayFor(modelItem => item.Date)</td>
+                <td>@item.Date.ToShortDateString()</td>
                 <td>
                     @if (item.Status == KooliProjekt.Data.OperationStatus.Pending)
                     {
@@ -40,7 +56,7 @@
                         <span class="badge bg-success">Completed</span>
                     }
                 </td>
-                <td>@Html.DisplayFor(modelItem => item.Cost)</td>
+                <td>@item.Cost</td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Edit</a>
                     <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Details</a>
@@ -50,4 +66,4 @@
         }
     </tbody>
 </table>
-@(await Component.InvokeAsync<KooliProjekt.Components.PagerViewComponent>(Model))
+@(await Component.InvokeAsync<KooliProjekt.Components.PagerViewComponent>(Model.Data))

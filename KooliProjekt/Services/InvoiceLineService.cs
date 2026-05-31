@@ -1,5 +1,6 @@
 using KooliProjekt.Data;
 using KooliProjekt.Data.Repositories;
+using KooliProjekt.Search;
 
 namespace KooliProjekt.Services
 {
@@ -12,9 +13,9 @@ namespace KooliProjekt.Services
             _uow = uow;
         }
 
-        public async Task<PagedResult<InvoiceLine>> List(int page, int pageSize)
+        public async Task<PagedResult<InvoiceLine>> List(int page, int pageSize, InvoiceLineSearch search = null)
         {
-            return await _uow.InvoiceLineRepository.List(page, pageSize);
+            return await _uow.InvoiceLineRepository.List(page, pageSize, search);
         }
 
         public async Task<InvoiceLine> Get(int id)

@@ -1,3 +1,4 @@
+using KooliProjekt.Search;
 using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Data.Repositories
@@ -8,14 +9,28 @@ namespace KooliProjekt.Data.Repositories
         {
         }
 
-        public override async Task<PagedResult<Operation>> List(int page, int pageSize)
+        public async Task<PagedResult<Operation>> List(int page, int pageSize, OperationSearch search = null)
         {
-            return await DbContext.Operations
+            var query = DbContext.Operations
                 .Include(o => o.Vehicle)
                 .Include(o => o.OperationType)
                 .Include(o => o.AssignedEmployee)
-                .OrderByDescending(x => x.Id)
-                .GetPagedAsync(page, pageSize);
+                .AsQueryable();
+
+            search = search ?? new OperationSearch();
+
+            if (!string.IsNullOrWhiteSpace(search.Keyword))
+            {
+                query = query.Where(o => o.Vehicle.LicensePlate.Contains(search.Keyword) ||
+                                        o.OperationType.Name.Contains(search.Keyword));
+            }
+
+            if (search.Status != null)
+            {
+                query = query.Where(o => o.Status == search.Status);
+            }
+
+            return await query.OrderByDescending(x => x.Id).GetPagedAsync(page, pageSize);
         }
 
         public override async Task<Operation> Get(int id)
