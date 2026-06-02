@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using KooliProjekt.Data;
 using KooliProjekt.Services;
 using Microsoft.EntityFrameworkCore;
@@ -19,8 +21,14 @@ namespace KooliProjekt.UnitTests.ServiceTests
         {
             var vehicle = new Vehicle { Manufacturer = "Volvo", Model = "FH16", LicensePlate = "TST001" };
             var opType = new OperationType { Name = "TestOp" };
+
+            // Parandus: Loome mällu ka õige ID-ga kasutaja (töötaja) objekti, mida teenus Include kaudu taga otsib
+            var user = new Microsoft.AspNetCore.Identity.IdentityUser { Id = "emp1", UserName = "test@emp.com" };
+
             context.Vehicles.Add(vehicle);
             context.OperationTypes.Add(opType);
+            context.Users.Add(user);
+
             await context.SaveChangesAsync();
             return (vehicle, opType);
         }
