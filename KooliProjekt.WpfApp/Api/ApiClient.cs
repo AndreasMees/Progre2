@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
-using KooliProjekt.WpfApp.Api;
 
 namespace KooliProjekt.WpfApp.Api
 {
@@ -20,10 +20,26 @@ namespace KooliProjekt.WpfApp.Api
         public async Task<Result<List<Vehicle>>> List()
         {
             var result = new Result<List<Vehicle>>();
-
             try
             {
-                result.Value = await _httpClient.GetFromJsonAsync<List<Vehicle>>("VehiclesApi");
+                // Loeme API vastuse esmalt toore tekstina sisse
+                var jsonString = await _httpClient.GetStringAsync("VehiclesApi");
+
+                using (JsonDocument doc = JsonDocument.Parse(jsonString))
+                {
+                    // Võtame JSON-ist välja ainult "results" massiivi osa
+                    if (doc.RootElement.TryGetProperty("results", out JsonElement resultsElement))
+                    {
+                        result.Value = JsonSerializer.Deserialize<List<Vehicle>>(resultsElement.GetRawText(), new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
+                    }
+                    else
+                    {
+                        result.Error = "Viga: API vastusest puudub 'results' massiiv.";
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -36,7 +52,6 @@ namespace KooliProjekt.WpfApp.Api
         public async Task<Result> Save(Vehicle vehicle)
         {
             var result = new Result();
-
             try
             {
                 HttpResponseMessage response;
@@ -51,7 +66,7 @@ namespace KooliProjekt.WpfApp.Api
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    result.Error = $"Salvestamine ebaõnnestus. Serveri staatus: {response.StatusCode}";
+                    result.Error = $"Server keeldus salvestamast (Status: {response.StatusCode})";
                 }
             }
             catch (Exception ex)
@@ -65,13 +80,12 @@ namespace KooliProjekt.WpfApp.Api
         public async Task<Result> Delete(int id)
         {
             var result = new Result();
-
             try
             {
                 var response = await _httpClient.DeleteAsync($"VehiclesApi/{id}");
                 if (!response.IsSuccessStatusCode)
                 {
-                    result.Error = $"Kustutamine ebaõnnestus. Serveri staatus: {response.StatusCode}";
+                    result.Error = $"Server keeldus kustutamast (Status: {response.StatusCode})";
                 }
             }
             catch (Exception ex)
