@@ -69,7 +69,7 @@ namespace KooliProjekt.UnitTests.ControllerTests
         public async Task Details_should_return_view_with_model_when_operation_was_found()
         {
             int id = 1;
-            var operation = new Operation { Id = id, Date = DateTime.Now, Status = OperationStatus.Pending };
+            var operation = new Operation { Id = id, Date = DateTime.Now, Status = OperationStatus.Pending, AssignedEmployeeId = "test" };
             _operationServiceMock.Setup(x => x.Get(id)).ReturnsAsync(operation);
             var result = await _controller.Details(id) as ViewResult;
             Assert.NotNull(result);
@@ -106,7 +106,7 @@ namespace KooliProjekt.UnitTests.ControllerTests
         public async Task Edit_should_return_view_with_model_when_operation_was_found()
         {
             int id = 1;
-            var operation = new Operation { Id = id, Date = DateTime.Now, Status = OperationStatus.Pending };
+            var operation = new Operation { Id = id, Date = DateTime.Now, Status = OperationStatus.Pending, AssignedEmployeeId = "test" };
             _operationServiceMock.Setup(x => x.Get(id)).ReturnsAsync(operation);
             var result = await _controller.Edit(id) as ViewResult;
             Assert.NotNull(result);
@@ -135,12 +135,75 @@ namespace KooliProjekt.UnitTests.ControllerTests
         public async Task Delete_should_return_view_with_model_when_operation_was_found()
         {
             int id = 1;
-            var operation = new Operation { Id = id, Date = DateTime.Now, Status = OperationStatus.Pending };
+            var operation = new Operation { Id = id, Date = DateTime.Now, Status = OperationStatus.Pending, AssignedEmployeeId = "test" };
             _operationServiceMock.Setup(x => x.Get(id)).ReturnsAsync(operation);
             var result = await _controller.Delete(id) as ViewResult;
             Assert.NotNull(result);
             Assert.True(string.IsNullOrEmpty(result.ViewName) || result.ViewName == "Delete");
             Assert.Equal(operation, result.Model);
+        }
+
+        [Fact]
+        public async Task Create_POST_should_return_view_when_modelstate_is_invalid()
+        {
+            _controller.ModelState.AddModelError("key", "error");
+            var operation = new Operation { Date = DateTime.Now, Status = OperationStatus.Pending, AssignedEmployeeId = "test" };
+            var result = await _controller.Create(operation) as ViewResult;
+            Assert.NotNull(result);
+            Assert.Equal(operation, result.Model);
+            _operationServiceMock.Verify(x => x.Save(It.IsAny<Operation>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Create_POST_should_redirect_when_modelstate_is_valid()
+        {
+            var operation = new Operation { VehicleId = 1, OperationTypeId = 1, Date = DateTime.Now, Status = OperationStatus.Pending, AssignedEmployeeId = "test" };
+            _operationServiceMock.Setup(x => x.Save(operation)).Verifiable();
+            var result = await _controller.Create(operation) as RedirectToActionResult;
+            Assert.NotNull(result);
+            Assert.Equal("Index", result.ActionName);
+            _operationServiceMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task Edit_POST_should_return_notfound_when_id_mismatch()
+        {
+            var operation = new Operation { Id = 2, Date = DateTime.Now, Status = OperationStatus.Pending, AssignedEmployeeId = "test" };
+            var result = await _controller.Edit(1, operation) as NotFoundResult;
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public async Task Edit_POST_should_return_view_when_modelstate_is_invalid()
+        {
+            _controller.ModelState.AddModelError("key", "error");
+            var operation = new Operation { Id = 1, Date = DateTime.Now, Status = OperationStatus.Pending, AssignedEmployeeId = "test" };
+            var result = await _controller.Edit(1, operation) as ViewResult;
+            Assert.NotNull(result);
+            Assert.Equal(operation, result.Model);
+            _operationServiceMock.Verify(x => x.Save(It.IsAny<Operation>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Edit_POST_should_redirect_when_modelstate_is_valid()
+        {
+            var operation = new Operation { Id = 1, VehicleId = 1, OperationTypeId = 1, Date = DateTime.Now, Status = OperationStatus.Pending, AssignedEmployeeId = "test" };
+            _operationServiceMock.Setup(x => x.Save(operation)).Verifiable();
+            var result = await _controller.Edit(1, operation) as RedirectToActionResult;
+            Assert.NotNull(result);
+            Assert.Equal("Index", result.ActionName);
+            _operationServiceMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task DeleteConfirmed_should_delete_operation()
+        {
+            int id = 1;
+            _operationServiceMock.Setup(x => x.Delete(id)).Verifiable();
+            var result = await _controller.DeleteConfirmed(id) as RedirectToActionResult;
+            Assert.NotNull(result);
+            Assert.Equal("Index", result.ActionName);
+            _operationServiceMock.VerifyAll();
         }
     }
 }

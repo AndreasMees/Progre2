@@ -132,5 +132,68 @@ namespace KooliProjekt.UnitTests.ControllerTests
             Assert.True(string.IsNullOrEmpty(result.ViewName) || result.ViewName == "Delete");
             Assert.Equal(invoiceLine, result.Model);
         }
+
+        [Fact]
+        public async Task Create_POST_should_return_view_when_modelstate_is_invalid()
+        {
+            _controller.ModelState.AddModelError("key", "error");
+            var invoiceLine = new InvoiceLine { LineItem = "Test", UnitPrice = 50, Quantity = 1, VatRate = 0.2m, Total = 60 };
+            var result = await _controller.Create(invoiceLine) as ViewResult;
+            Assert.NotNull(result);
+            Assert.Equal(invoiceLine, result.Model);
+            _invoiceLineServiceMock.Verify(x => x.Save(It.IsAny<InvoiceLine>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Create_POST_should_redirect_when_modelstate_is_valid()
+        {
+            var invoiceLine = new InvoiceLine { LineItem = "Test", UnitPrice = 50, Quantity = 1, VatRate = 0.2m, Total = 60, InvoiceId = 1 };
+            _invoiceLineServiceMock.Setup(x => x.Save(invoiceLine)).Verifiable();
+            var result = await _controller.Create(invoiceLine) as RedirectToActionResult;
+            Assert.NotNull(result);
+            Assert.Equal("Index", result.ActionName);
+            _invoiceLineServiceMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task Edit_POST_should_return_notfound_when_id_mismatch()
+        {
+            var invoiceLine = new InvoiceLine { Id = 2, LineItem = "Test", UnitPrice = 50, Quantity = 1, VatRate = 0.2m, Total = 60 };
+            var result = await _controller.Edit(1, invoiceLine) as NotFoundResult;
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public async Task Edit_POST_should_return_view_when_modelstate_is_invalid()
+        {
+            _controller.ModelState.AddModelError("key", "error");
+            var invoiceLine = new InvoiceLine { Id = 1, LineItem = "Test", UnitPrice = 50, Quantity = 1, VatRate = 0.2m, Total = 60 };
+            var result = await _controller.Edit(1, invoiceLine) as ViewResult;
+            Assert.NotNull(result);
+            Assert.Equal(invoiceLine, result.Model);
+            _invoiceLineServiceMock.Verify(x => x.Save(It.IsAny<InvoiceLine>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Edit_POST_should_redirect_when_modelstate_is_valid()
+        {
+            var invoiceLine = new InvoiceLine { Id = 1, LineItem = "Test", UnitPrice = 50, Quantity = 1, VatRate = 0.2m, Total = 60, InvoiceId = 1 };
+            _invoiceLineServiceMock.Setup(x => x.Save(invoiceLine)).Verifiable();
+            var result = await _controller.Edit(1, invoiceLine) as RedirectToActionResult;
+            Assert.NotNull(result);
+            Assert.Equal("Index", result.ActionName);
+            _invoiceLineServiceMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task DeleteConfirmed_should_delete_invoiceline()
+        {
+            int id = 1;
+            _invoiceLineServiceMock.Setup(x => x.Delete(id)).Verifiable();
+            var result = await _controller.DeleteConfirmed(id) as RedirectToActionResult;
+            Assert.NotNull(result);
+            Assert.Equal("Index", result.ActionName);
+            _invoiceLineServiceMock.VerifyAll();
+        }
     }
 }

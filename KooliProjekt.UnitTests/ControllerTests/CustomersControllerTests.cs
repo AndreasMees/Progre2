@@ -22,29 +22,15 @@ namespace KooliProjekt.UnitTests.ControllerTests
         [Fact]
         public async Task Index_should_return_view_and_data()
         {
-            // Arrange
             var page = 1;
             var data = new List<Customer>
             {
                 new Customer { Id = 1, Name = "Test 1", Address = "Addr 1", Email = "test1@test.com", Phone = "+37251234567" },
                 new Customer { Id = 2, Name = "Test 2", Address = "Addr 2", Email = "test2@test.com", Phone = "+37251234568" }
             };
-            var pagedResult = new PagedResult<Customer>
-            {
-                Results = data,
-                CurrentPage = 1,
-                PageCount = 1,
-                PageSize = 5,
-                RowCount = 2
-            };
-            _customerServiceMock
-                .Setup(x => x.List(page, It.IsAny<int>(), null))
-                .ReturnsAsync(pagedResult);
-
-            // Act
+            var pagedResult = new PagedResult<Customer> { Results = data, CurrentPage = 1, PageCount = 1, PageSize = 5, RowCount = 2 };
+            _customerServiceMock.Setup(x => x.List(page, It.IsAny<int>(), null)).ReturnsAsync(pagedResult);
             var result = await _controller.Index(page) as ViewResult;
-
-            // Assert
             Assert.NotNull(result);
             Assert.True(string.IsNullOrEmpty(result.ViewName) || result.ViewName == "Index");
             var model = result.Model as CustomersIndexModel;
@@ -145,6 +131,69 @@ namespace KooliProjekt.UnitTests.ControllerTests
             Assert.NotNull(result);
             Assert.True(string.IsNullOrEmpty(result.ViewName) || result.ViewName == "Delete");
             Assert.Equal(customer, result.Model);
+        }
+
+        [Fact]
+        public async Task Create_POST_should_return_view_when_modelstate_is_invalid()
+        {
+            _controller.ModelState.AddModelError("key", "error");
+            var customer = new Customer { Name = "Test", Address = "Addr", Email = "t@t.com", Phone = "+37251234567" };
+            var result = await _controller.Create(customer) as ViewResult;
+            Assert.NotNull(result);
+            Assert.Equal(customer, result.Model);
+            _customerServiceMock.Verify(x => x.Save(It.IsAny<Customer>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Create_POST_should_redirect_when_modelstate_is_valid()
+        {
+            var customer = new Customer { Name = "Test", Address = "Addr", Email = "t@t.com", Phone = "+37251234567" };
+            _customerServiceMock.Setup(x => x.Save(customer)).Verifiable();
+            var result = await _controller.Create(customer) as RedirectToActionResult;
+            Assert.NotNull(result);
+            Assert.Equal("Index", result.ActionName);
+            _customerServiceMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task Edit_POST_should_return_notfound_when_id_mismatch()
+        {
+            var customer = new Customer { Id = 2, Name = "Test", Address = "Addr", Email = "t@t.com", Phone = "+37251234567" };
+            var result = await _controller.Edit(1, customer) as NotFoundResult;
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public async Task Edit_POST_should_return_view_when_modelstate_is_invalid()
+        {
+            _controller.ModelState.AddModelError("key", "error");
+            var customer = new Customer { Id = 1, Name = "Test", Address = "Addr", Email = "t@t.com", Phone = "+37251234567" };
+            var result = await _controller.Edit(1, customer) as ViewResult;
+            Assert.NotNull(result);
+            Assert.Equal(customer, result.Model);
+            _customerServiceMock.Verify(x => x.Save(It.IsAny<Customer>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Edit_POST_should_redirect_when_modelstate_is_valid()
+        {
+            var customer = new Customer { Id = 1, Name = "Test", Address = "Addr", Email = "t@t.com", Phone = "+37251234567" };
+            _customerServiceMock.Setup(x => x.Save(customer)).Verifiable();
+            var result = await _controller.Edit(1, customer) as RedirectToActionResult;
+            Assert.NotNull(result);
+            Assert.Equal("Index", result.ActionName);
+            _customerServiceMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task DeleteConfirmed_should_delete_customer()
+        {
+            int id = 1;
+            _customerServiceMock.Setup(x => x.Delete(id)).Verifiable();
+            var result = await _controller.DeleteConfirmed(id) as RedirectToActionResult;
+            Assert.NotNull(result);
+            Assert.Equal("Index", result.ActionName);
+            _customerServiceMock.VerifyAll();
         }
     }
 }

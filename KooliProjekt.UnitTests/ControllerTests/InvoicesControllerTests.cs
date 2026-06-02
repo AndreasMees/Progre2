@@ -136,5 +136,66 @@ namespace KooliProjekt.UnitTests.ControllerTests
             Assert.True(string.IsNullOrEmpty(result.ViewName) || result.ViewName == "Delete");
             Assert.Equal(invoice, result.Model);
         }
+
+        [Fact]
+        public async Task Create_POST_should_return_view_when_modelstate_is_invalid()
+        {
+            _controller.ModelState.AddModelError("key", "error");
+            var invoice = new Invoice { InvoiceDate = DateTime.Now.AddDays(-1), DueDate = DateTime.Now.AddDays(29) };
+            var result = await _controller.Create(invoice) as ViewResult;
+            Assert.NotNull(result);
+            _invoiceServiceMock.Verify(x => x.Save(It.IsAny<Invoice>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Create_POST_should_redirect_when_modelstate_is_valid()
+        {
+            var invoice = new Invoice { InvoiceDate = DateTime.Now.AddDays(-1), DueDate = DateTime.Now.AddDays(29), CustomerId = 1 };
+            _invoiceServiceMock.Setup(x => x.Save(invoice)).Verifiable();
+            var result = await _controller.Create(invoice) as RedirectToActionResult;
+            Assert.NotNull(result);
+            Assert.Equal("Index", result.ActionName);
+            _invoiceServiceMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task Edit_POST_should_return_notfound_when_id_mismatch()
+        {
+            var invoice = new Invoice { Id = 2, InvoiceDate = DateTime.Now.AddDays(-1), DueDate = DateTime.Now.AddDays(29) };
+            var result = await _controller.Edit(1, invoice) as NotFoundResult;
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public async Task Edit_POST_should_return_view_when_modelstate_is_invalid()
+        {
+            _controller.ModelState.AddModelError("key", "error");
+            var invoice = new Invoice { Id = 1, InvoiceDate = DateTime.Now.AddDays(-1), DueDate = DateTime.Now.AddDays(29) };
+            var result = await _controller.Edit(1, invoice) as ViewResult;
+            Assert.NotNull(result);
+            _invoiceServiceMock.Verify(x => x.Save(It.IsAny<Invoice>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Edit_POST_should_redirect_when_modelstate_is_valid()
+        {
+            var invoice = new Invoice { Id = 1, InvoiceDate = DateTime.Now.AddDays(-1), DueDate = DateTime.Now.AddDays(29), CustomerId = 1 };
+            _invoiceServiceMock.Setup(x => x.Save(invoice)).Verifiable();
+            var result = await _controller.Edit(1, invoice) as RedirectToActionResult;
+            Assert.NotNull(result);
+            Assert.Equal("Index", result.ActionName);
+            _invoiceServiceMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task DeleteConfirmed_should_delete_invoice()
+        {
+            int id = 1;
+            _invoiceServiceMock.Setup(x => x.Delete(id)).Verifiable();
+            var result = await _controller.DeleteConfirmed(id) as RedirectToActionResult;
+            Assert.NotNull(result);
+            Assert.Equal("Index", result.ActionName);
+            _invoiceServiceMock.VerifyAll();
+        }
     }
 }

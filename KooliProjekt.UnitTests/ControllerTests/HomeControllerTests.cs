@@ -13,12 +13,13 @@ namespace KooliProjekt.UnitTests.ControllerTests
         {
             // Arrange
             var controller = new HomeController();
+            
             // Act
             var result = controller.Index() as ViewResult;
+            
             // Assert
             Assert.NotNull(result);
-            Assert.True(result.ViewName == "Index" ||
-                        string.IsNullOrEmpty(result.ViewName));
+            Assert.True(result.ViewName == "Index" || string.IsNullOrEmpty(result.ViewName));
         }
 
         [Fact]
@@ -26,12 +27,13 @@ namespace KooliProjekt.UnitTests.ControllerTests
         {
             // Arrange
             var controller = new HomeController();
+            
             // Act
             var result = controller.Privacy() as ViewResult;
+            
             // Assert
             Assert.NotNull(result);
-            Assert.True(result.ViewName == "Privacy" ||
-                        string.IsNullOrEmpty(result.ViewName));
+            Assert.True(result.ViewName == "Privacy" || string.IsNullOrEmpty(result.ViewName));
         }
 
         [Fact]
@@ -43,8 +45,10 @@ namespace KooliProjekt.UnitTests.ControllerTests
             {
                 HttpContext = new DefaultHttpContext()
             };
+            
             // Act
             var result = controller.Error() as ViewResult;
+            
             // Assert
             Assert.NotNull(result);
             Assert.IsType<ErrorViewModel>(result.Model);

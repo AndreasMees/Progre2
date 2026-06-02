@@ -126,5 +126,68 @@ namespace KooliProjekt.UnitTests.ControllerTests
             Assert.True(string.IsNullOrEmpty(result.ViewName) || result.ViewName == "Delete");
             Assert.Equal(operationType, result.Model);
         }
+
+        [Fact]
+        public async Task Create_POST_should_return_view_when_modelstate_is_invalid()
+        {
+            _controller.ModelState.AddModelError("key", "error");
+            var operationType = new OperationType { Name = "Maintenance" };
+            var result = await _controller.Create(operationType) as ViewResult;
+            Assert.NotNull(result);
+            Assert.Equal(operationType, result.Model);
+            _operationTypeServiceMock.Verify(x => x.Save(It.IsAny<OperationType>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Create_POST_should_redirect_when_modelstate_is_valid()
+        {
+            var operationType = new OperationType { Name = "Maintenance" };
+            _operationTypeServiceMock.Setup(x => x.Save(operationType)).Verifiable();
+            var result = await _controller.Create(operationType) as RedirectToActionResult;
+            Assert.NotNull(result);
+            Assert.Equal("Index", result.ActionName);
+            _operationTypeServiceMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task Edit_POST_should_return_notfound_when_id_mismatch()
+        {
+            var operationType = new OperationType { Id = 2, Name = "Maintenance" };
+            var result = await _controller.Edit(1, operationType) as NotFoundResult;
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public async Task Edit_POST_should_return_view_when_modelstate_is_invalid()
+        {
+            _controller.ModelState.AddModelError("key", "error");
+            var operationType = new OperationType { Id = 1, Name = "Maintenance" };
+            var result = await _controller.Edit(1, operationType) as ViewResult;
+            Assert.NotNull(result);
+            Assert.Equal(operationType, result.Model);
+            _operationTypeServiceMock.Verify(x => x.Save(It.IsAny<OperationType>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task Edit_POST_should_redirect_when_modelstate_is_valid()
+        {
+            var operationType = new OperationType { Id = 1, Name = "Maintenance" };
+            _operationTypeServiceMock.Setup(x => x.Save(operationType)).Verifiable();
+            var result = await _controller.Edit(1, operationType) as RedirectToActionResult;
+            Assert.NotNull(result);
+            Assert.Equal("Index", result.ActionName);
+            _operationTypeServiceMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task DeleteConfirmed_should_delete_operationtype()
+        {
+            int id = 1;
+            _operationTypeServiceMock.Setup(x => x.Delete(id)).Verifiable();
+            var result = await _controller.DeleteConfirmed(id) as RedirectToActionResult;
+            Assert.NotNull(result);
+            Assert.Equal("Index", result.ActionName);
+            _operationTypeServiceMock.VerifyAll();
+        }
     }
 }
