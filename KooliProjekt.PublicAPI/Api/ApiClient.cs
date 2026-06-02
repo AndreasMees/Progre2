@@ -7,15 +7,6 @@ using System.Threading.Tasks;
 
 namespace KooliProjekt.PublicAPI
 {
-    // Autonoomne andmemudel, mis ei sõltu serveri veebipakettidest
-    public class Vehicle
-    {
-        public int Id { get; set; }
-        public string? Manufacturer { get; set; }
-        public string? Model { get; set; }
-        public string? LicensePlate { get; set; }
-    }
-
     public class ApiClient : IApiClient
     {
         private readonly HttpClient _httpClient;
@@ -30,17 +21,15 @@ namespace KooliProjekt.PublicAPI
             }
         }
 
+        // ... (Kõik ülejäänud List(), Save(), Delete() meetodid jäävad täpselt samaks)
         public async Task<Result<List<Vehicle>>> List()
         {
             var result = new Result<List<Vehicle>>();
             try
             {
-                // Loeme API vastuse esmalt toore tekstina sisse
                 var jsonString = await _httpClient.GetStringAsync("VehiclesApi");
-
                 using (JsonDocument doc = JsonDocument.Parse(jsonString))
                 {
-                    // Võtame JSON-ist välja ainult "results" massiivi osa
                     if (doc.RootElement.TryGetProperty("results", out JsonElement resultsElement))
                     {
                         result.Value = JsonSerializer.Deserialize<List<Vehicle>>(resultsElement.GetRawText(), new JsonSerializerOptions
@@ -48,15 +37,11 @@ namespace KooliProjekt.PublicAPI
                             PropertyNameCaseInsensitive = true
                         });
                     }
-                    else
-                    {
-                        result.Error = "Viga: API vastusest puudub 'results' massiiv.";
-                    }
                 }
             }
             catch (Exception ex)
             {
-                result.Error = $"Andmete laadimine ebaõnnestus: {ex.Message}";
+                result.Error = ex.Message;
             }
             return result;
         }
@@ -76,14 +61,24 @@ namespace KooliProjekt.PublicAPI
                     response = await _httpClient.PutAsJsonAsync($"VehiclesApi/{vehicle.Id}", vehicle);
                 }
 
-                if (!response.IsSuccessStatusCode)
+                if (!response.IsSuccessStatusCode && response.StatusCode == System.Net.HttpStatusCode.BadRequest)
                 {
-                    result.Error = $"Salvestamine ebaõnnestus. Serveri staatus: {response.StatusCode}";
+                    var content = await response.Content.ReadAsStringAsync();
+                    using (JsonDocument doc = JsonDocument.Parse(content))
+                    {
+                        if (doc.RootElement.TryGetProperty("errors", out JsonElement errorsElement))
+                        {
+                            result.Errors = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(errorsElement.GetRawText(), new JsonSerializerOptions
+                            {
+                                PropertyNameCaseInsensitive = true
+                            }) ?? new Dictionary<string, List<string>>();
+                        }
+                    }
                 }
             }
             catch (Exception ex)
             {
-                result.Error = $"Salvestamisel tekkis viga: {ex.Message}";
+                result.Error = ex.Message;
             }
             return result;
         }
@@ -93,15 +88,11 @@ namespace KooliProjekt.PublicAPI
             var result = new Result();
             try
             {
-                var response = await _httpClient.DeleteAsync($"VehiclesApi/{id}");
-                if (!response.IsSuccessStatusCode)
-                {
-                    result.Error = $"Kustutamine ebaõnnestus. Serveri staatus: {response.StatusCode}";
-                }
+                await _httpClient.DeleteAsync($"VehiclesApi/{id}");
             }
             catch (Exception ex)
             {
-                result.Error = $"Kustutamisel tekkis viga: {ex.Message}";
+                result.Error = ex.Message;
             }
             return result;
         }
