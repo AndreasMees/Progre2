@@ -27,7 +27,7 @@ namespace KooliProjekt
             builder.Services.AddScoped<IInvoiceLineService, InvoiceLineService>();
             builder.Services.AddScoped<IOperationService, OperationService>();
             builder.Services.AddScoped<IOperationTypeService, OperationTypeService>();
-
+            builder.Services.AddCors();
             var app = builder.Build();
 
             // Uuenda andmebaas ja genereeri andmed (ainult Debug buildis)
@@ -53,6 +53,11 @@ namespace KooliProjekt
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseCors(options => options
+    .AllowAnyOrigin()
+    .AllowAnyMethod()
+    .AllowAnyHeader()
+);
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
