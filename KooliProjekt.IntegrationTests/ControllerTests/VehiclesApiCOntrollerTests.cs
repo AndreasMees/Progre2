@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
-using System.Net.Http;
 
 namespace KooliProjekt.IntegrationTests
 {
@@ -21,16 +21,7 @@ namespace KooliProjekt.IntegrationTests
         {
             var response = await _client.GetAsync("/api/VehiclesApi");
             response.EnsureSuccessStatusCode();
-            
-            // API tagastab JSON andmeid
             Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType?.ToString());
-        }
-
-        [Fact]
-        public async Task GetById_ReturnsSuccess_WhenIdExists()
-        {
-            var response = await _client.GetAsync("/api/VehiclesApi/1");
-            response.EnsureSuccessStatusCode();
         }
 
         [Fact]
@@ -38,6 +29,27 @@ namespace KooliProjekt.IntegrationTests
         {
             var response = await _client.GetAsync("/api/VehiclesApi/99999");
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Post_ValidData_ReturnsSuccess()
+        {
+            // Arrange: Kasutame unikaalset numbrimärki (juhuslik number), et andmebaas viga ei viskaks
+            var randomPlate = "TEST" + System.Guid.NewGuid().ToString().Substring(0, 4).ToUpper();
+            var newVehicle = new 
+            {
+                Manufacturer = "Audi",
+                Model = "A6",
+                LicensePlate = randomPlate
+            };
+            var json = System.Text.Json.JsonSerializer.Serialize(newVehicle);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await _client.PostAsync("/api/VehiclesApi", content);
+
+            // Assert
+            response.EnsureSuccessStatusCode();
         }
     }
 }

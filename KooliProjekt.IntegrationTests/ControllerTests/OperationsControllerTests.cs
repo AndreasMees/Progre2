@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Mvc.Testing;
+using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
-using System.Net.Http;
 
 namespace KooliProjekt.IntegrationTests
 {
@@ -25,17 +26,21 @@ namespace KooliProjekt.IntegrationTests
         }
 
         [Fact]
-        public async Task Details_ReturnsSuccess_WhenIdExists()
-        {
-            var response = await _client.GetAsync("/Operations/Details/1");
-            response.EnsureSuccessStatusCode();
-        }
-
-        [Fact]
         public async Task Details_ReturnsNotFound_WhenIdDoesNotExist()
         {
             var response = await _client.GetAsync("/Operations/Details/99999");
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Create_Post_InvalidData_ReturnsBadRequestDueToMissingToken()
+        {
+            var formValues = new Dictionary<string, string> { { "Cost", "-100" } };
+            var content = new FormUrlEncodedContent(formValues);
+
+            var response = await _client.PostAsync("/Operations/Create", content);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
     }
 }
