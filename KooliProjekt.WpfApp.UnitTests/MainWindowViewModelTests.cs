@@ -1,23 +1,32 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 using Moq;
+using KooliProjekt.WpfApp.Api;
 
 namespace KooliProjekt.WpfApp.UnitTests
 {
     public class MainWindowViewModelTests
     {
+        private readonly Mock<IApiClient> _apiClientMock;
+
+        public MainWindowViewModelTests()
+        {
+            _apiClientMock = new Mock<IApiClient>();
+        }
+
         [Fact]
         public void ExecuteNew_ShouldCreateNewVehicleAndClearFields()
         {
             // Arrange
-            var viewModel = new MainWindowViewModel();
+            var viewModel = new MainWindowViewModel(_apiClientMock.Object);
             viewModel.SelectedItem = new Vehicle { Id = 5, Manufacturer = "Audi" };
 
-            // Act: Käivitame uue objekti loomise käsu (simuleerib "New" nupu vajutust)
+            // Act
             viewModel.NewCommand.Execute(null);
 
-            // Assert: Kontrollime, et SelectedItem on loodud uuesti ja selle ID on 0 (tühi)
+            // Assert
             Assert.NotNull(viewModel.SelectedItem);
             Assert.Equal(0, viewModel.SelectedItem.Id);
             Assert.Null(viewModel.SelectedItem.Manufacturer);
@@ -27,10 +36,9 @@ namespace KooliProjekt.WpfApp.UnitTests
         public void SelectedItem_PropertyChange_ShouldNotifyUI()
         {
             // Arrange
-            var viewModel = new MainWindowViewModel();
+            var viewModel = new MainWindowViewModel(_apiClientMock.Object);
             string propertyName = null;
 
-            // Kuulame, kas PropertyChanged sündmus käivitub
             viewModel.PropertyChanged += (sender, e) =>
             {
                 propertyName = e.PropertyName;
@@ -41,7 +49,7 @@ namespace KooliProjekt.WpfApp.UnitTests
             // Act
             viewModel.SelectedItem = testVehicle;
 
-            // Assert: Kontrollime, et teavitati just "SelectedItem" omaduse muutumisest
+            // Assert
             Assert.Equal("SelectedItem", propertyName);
         }
 
@@ -49,18 +57,17 @@ namespace KooliProjekt.WpfApp.UnitTests
         public async Task ExecuteDelete_WhenCancelled_ShouldNotCallAPI()
         {
             // Arrange
-            var viewModel = new MainWindowViewModel();
+            var viewModel = new MainWindowViewModel(_apiClientMock.Object);
             viewModel.SelectedItem = new Vehicle { Id = 10, Manufacturer = "BMW" };
-
-            // Mockime ConfirmDelete funktsiooni nii, et kasutaja vajutab dialoogis "No" (false)
             viewModel.ConfirmDelete = (msg) => false;
 
             // Act
             viewModel.DeleteCommand.Execute(null);
 
-            // Assert: Kuna kasutaja tühistas, peaks valitud item jääma ikka samaks
+            // Assert
             Assert.NotNull(viewModel.SelectedItem);
             Assert.Equal(10, viewModel.SelectedItem.Id);
+            _apiClientMock.Verify(x => x.Delete(It.IsAny<int>()), Times.Never);
         }
     }
 }

@@ -1,22 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using KooliProjekt.WpfApp.Api;
 
 namespace KooliProjekt.WpfApp
 {
     public class MainWindowViewModel : NotifyPropertyChangedBase
     {
-        private readonly HttpClient _client;
-        private readonly string _baseUrl = "https://localhost:7136/api/VehiclesApi";
-
+        private readonly IApiClient _apiClient;
         private ObservableCollection<Vehicle> _lists;
         private Vehicle _selectedItem;
 
+        // Õpetaja näitest: nupud ja kood saavad teavitada vigadest läbi selle Actioni
+        public Action<string> OnError { get; set; }
         public Func<string, bool> ConfirmDelete { get; set; }
 
         public ObservableCollection<Vehicle> Lists
@@ -39,17 +37,16 @@ namespace KooliProjekt.WpfApp
             }
         }
 
-        // Käsud (Commands) nuppude jaoks
         public ICommand NewCommand { get; }
         public ICommand SaveCommand { get; }
         public ICommand DeleteCommand { get; }
 
-        public MainWindowViewModel()
+        // ViewModel võtab konstruktoris vastu liidese kaudu API-kliendi
+        public MainWindowViewModel(IApiClient apiClient)
         {
-            _client = new HttpClient();
+            _apiClient = apiClient;
             Lists = new ObservableCollection<Vehicle>();
 
-            // Seostame nupud funktsioonidega
             NewCommand = new RelayCommand(_ => ExecuteNew());
             SaveCommand = new RelayCommand(async _ => await ExecuteSave());
             DeleteCommand = new RelayCommand(async _ => await ExecuteDelete());
@@ -57,43 +54,31 @@ namespace KooliProjekt.WpfApp
 
         public async Task Load()
         {
-            try
-            {
-                var response = await _client.GetAsync(_baseUrl);
-                if (response.IsSuccessStatusCode)
-                {
-                    var jsonString = await response.Content.ReadAsStringAsync();
-                    using (JsonDocument doc = JsonDocument.Parse(jsonString))
-                    {
-                        if (doc.RootElement.TryGetProperty("results", out JsonElement resultsElement))
-                        {
-                            var vehicles = JsonSerializer.Deserialize<List<Vehicle>>(resultsElement.GetRawText(), new JsonSerializerOptions
-                            {
-                                PropertyNameCaseInsensitive = true
-                            });
+            // Kutsume välja API-kliendi List() meetodi, mis tagastab Result tüübi
+            var result = await _apiClient.List();
 
-                            Lists.Clear();
-                            foreach (var vehicle in vehicles)
-                            {
-                                Lists.Add(vehicle);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
+            if (result.HasError)
             {
-                System.Windows.MessageBox.Show($"API viga laadimisel: {ex.Message}");
+                // Kui tekkis viga, käivitame OnError teavituse
+                OnError?.Invoke(result.Error);
+                return;
+            }
+
+            Lists.Clear();
+            if (result.Value != null)
+            {
+                foreach (var vehicle in result.Value)
+                {
+                    Lists.Add(vehicle);
+                }
             }
         }
 
-        // 1. "New" nupu vajutus - loob uue puhta objekti tekstikastide jaoks
         private void ExecuteNew()
         {
             SelectedItem = new Vehicle();
         }
 
-        // 2. "Save" nupu vajutus - salvestab uue (POST) või muudab vana (PUT)
         private async Task ExecuteSave()
         {
             if (SelectedItem == null) return;
@@ -102,36 +87,22 @@ namespace KooliProjekt.WpfApp
                 string.IsNullOrWhiteSpace(SelectedItem.Model) ||
                 string.IsNullOrWhiteSpace(SelectedItem.LicensePlate))
             {
-                System.Windows.MessageBox.Show("Palun täida kõik väljad!");
+                OnError?.Invoke("Palun täida kõik väljad enne salvestamist!");
                 return;
             }
 
-            HttpResponseMessage response;
+            var result = await _apiClient.Save(SelectedItem);
 
-            if (SelectedItem.Id == 0)
+            if (result.HasError)
             {
-                // POST uue lisamiseks
-                response = await _client.PostAsJsonAsync(_baseUrl, SelectedItem);
-            }
-            else
-            {
-                // PUT muutmiseks
-                response = await _client.PutAsJsonAsync($"{_baseUrl}/{SelectedItem.Id}", SelectedItem);
+                OnError?.Invoke(result.Error);
+                return;
             }
 
-            if (response.IsSuccessStatusCode)
-            {
-                await Load();
-                ExecuteNew(); // Puhastame väljad uue jaoks valmis
-                System.Windows.MessageBox.Show("Salvestatud edukalt!");
-            }
-            else
-            {
-                System.Windows.MessageBox.Show("Salvestamine ebaõnnestus serveri tõrke tõttu.");
-            }
+            await Load();
+            ExecuteNew();
         }
 
-        // 3. "Delete" nupu vajutus - kustutab valitud objekti (DELETE)
         private async Task ExecuteDelete()
         {
             if (SelectedItem == null || SelectedItem.Id == 0) return;
@@ -139,12 +110,16 @@ namespace KooliProjekt.WpfApp
             bool canDelete = ConfirmDelete?.Invoke("Kustuta") ?? false;
             if (canDelete)
             {
-                var response = await _client.DeleteAsync($"{_baseUrl}/{SelectedItem.Id}");
-                if (response.IsSuccessStatusCode)
+                var result = await _apiClient.Delete(SelectedItem.Id);
+
+                if (result.HasError)
                 {
-                    await Load();
-                    ExecuteNew();
+                    OnError?.Invoke(result.Error);
+                    return;
                 }
+
+                await Load();
+                ExecuteNew();
             }
         }
     }

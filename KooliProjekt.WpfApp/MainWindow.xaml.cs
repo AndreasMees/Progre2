@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using KooliProjekt.WpfApp.Api;
 
 namespace KooliProjekt.WpfApp
 {
@@ -12,9 +13,18 @@ namespace KooliProjekt.WpfApp
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            var viewModel = new MainWindowViewModel();
+            // 1. Luuakse API klient
+            var apiClient = new ApiClient();
 
-            // Kustutamise dialoogi sidumine täpselt nagu õpetaja näites
+            // 2. Süstitakse see ViewModelile kaasa
+            var viewModel = new MainWindowViewModel(apiClient);
+
+            // 3. Seotakse veateate kuvamine õpetaja näite eeskujul
+            viewModel.OnError = error =>
+            {
+                MessageBox.Show(error, "API Tõrge", MessageBoxButton.OK, MessageBoxImage.Error);
+            };
+
             viewModel.ConfirmDelete = _ =>
             {
                 var result = MessageBox.Show(
@@ -28,7 +38,7 @@ namespace KooliProjekt.WpfApp
 
             DataContext = viewModel;
 
-            // Laadime andmed API-st
+            // 4. Laaditakse andmed
             await viewModel.Load();
         }
     }
