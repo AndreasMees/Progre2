@@ -113,5 +113,19 @@ namespace KooliProjekt.UnitTests.ServiceTests
             _invoiceRepositoryMock.Verify(x => x.Remove(invoice), Times.Once);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(), Times.Once);
         }
+
+        [Fact]
+        public async Task Delete_should_return_false_when_invoice_not_found()
+        {
+            int id = 99;
+            _invoiceRepositoryMock.Setup(x => x.Get(id)).ReturnsAsync((Invoice)null);
+
+            var result = await _service.Delete(id);
+
+            Assert.False(result);
+            _invoiceRepositoryMock.Verify(x => x.Get(id), Times.Once);
+            _invoiceRepositoryMock.Verify(x => x.Remove(It.IsAny<Invoice>()), Times.Never);
+            _unitOfWorkMock.Verify(x => x.SaveChangesAsync(), Times.Never);
+        }
     }
 }

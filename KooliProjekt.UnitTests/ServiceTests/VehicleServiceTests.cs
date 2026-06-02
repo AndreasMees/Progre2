@@ -112,5 +112,19 @@ namespace KooliProjekt.UnitTests.ServiceTests
             _vehicleRepositoryMock.Verify(x => x.Remove(vehicle), Times.Once);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(), Times.Once);
         }
+
+        [Fact]
+        public async Task Delete_should_return_false_when_vehicle_not_found()
+        {
+            int id = 99;
+            _vehicleRepositoryMock.Setup(x => x.Get(id)).ReturnsAsync((Vehicle)null);
+
+            var result = await _service.Delete(id);
+
+            Assert.False(result);
+            _vehicleRepositoryMock.Verify(x => x.Get(id), Times.Once);
+            _vehicleRepositoryMock.Verify(x => x.Remove(It.IsAny<Vehicle>()), Times.Never);
+            _unitOfWorkMock.Verify(x => x.SaveChangesAsync(), Times.Never);
+        }
     }
 }
