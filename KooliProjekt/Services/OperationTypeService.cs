@@ -15,42 +15,35 @@ namespace KooliProjekt.Services
 
         public async Task<PagedResult<OperationType>> List(int page, int pageSize, OperationTypeSearch search = null)
         {
-            return await _uow.OperationTypeRepository.List(page, pageSize, search);
+            return await _uow.OperationTypes.List(page, pageSize, search);
         }
 
         public async Task<OperationType> Get(int id)
         {
-            return await _uow.OperationTypeRepository.Get(id);
+            return await _uow.OperationTypes.Get(id);
         }
 
-        public async Task Save(OperationType operationType)
+        public async Task<bool> Save(OperationType operationType)
         {
-            await _uow.BeginTransaction();
-            try
-            {
-                await _uow.OperationTypeRepository.Save(operationType);
-                await _uow.Commit();
-            }
-            catch
-            {
-                await _uow.Rollback();
-                throw;
-            }
+            _uow.OperationTypes.Add(operationType);
+            await _uow.SaveChangesAsync();
+            return true;
         }
 
-        public async Task Delete(int id)
+        public async Task<bool> Update(OperationType operationType)
         {
-            await _uow.BeginTransaction();
-            try
-            {
-                await _uow.OperationTypeRepository.Delete(id);
-                await _uow.Commit();
-            }
-            catch
-            {
-                await _uow.Rollback();
-                throw;
-            }
+            _uow.OperationTypes.Update(operationType);
+            await _uow.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> Delete(int id)
+        {
+            var operationType = await _uow.OperationTypes.Get(id);
+            if (operationType == null) return false;
+            _uow.OperationTypes.Remove(operationType);
+            await _uow.SaveChangesAsync();
+            return true;
         }
     }
 }

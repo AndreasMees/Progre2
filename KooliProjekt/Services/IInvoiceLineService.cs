@@ -7,7 +7,8 @@ namespace KooliProjekt.Services
     {
         Task<PagedResult<InvoiceLine>> List(int page, int pageSize, InvoiceLineSearch search = null);
         Task<InvoiceLine> Get(int id);
-        Task Save(InvoiceLine invoiceLine);
-        Task Delete(int id);
+        Task<bool> Save(InvoiceLine invoiceLine);
+        Task<bool> Update(InvoiceLine invoiceLine);
+        Task<bool> Delete(int id);
     }
 }

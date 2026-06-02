@@ -15,42 +15,35 @@ namespace KooliProjekt.Services
 
         public async Task<PagedResult<Operation>> List(int page, int pageSize, OperationSearch search = null)
         {
-            return await _uow.OperationRepository.List(page, pageSize, search);
+            return await _uow.Operations.List(page, pageSize, search);
         }
 
         public async Task<Operation> Get(int id)
         {
-            return await _uow.OperationRepository.Get(id);
+            return await _uow.Operations.Get(id);
         }
 
-        public async Task Save(Operation operation)
+        public async Task<bool> Save(Operation operation)
         {
-            await _uow.BeginTransaction();
-            try
-            {
-                await _uow.OperationRepository.Save(operation);
-                await _uow.Commit();
-            }
-            catch
-            {
-                await _uow.Rollback();
-                throw;
-            }
+            _uow.Operations.Add(operation);
+            await _uow.SaveChangesAsync();
+            return true;
         }
 
-        public async Task Delete(int id)
+        public async Task<bool> Update(Operation operation)
         {
-            await _uow.BeginTransaction();
-            try
-            {
-                await _uow.OperationRepository.Delete(id);
-                await _uow.Commit();
-            }
-            catch
-            {
-                await _uow.Rollback();
-                throw;
-            }
+            _uow.Operations.Update(operation);
+            await _uow.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> Delete(int id)
+        {
+            var operation = await _uow.Operations.Get(id);
+            if (operation == null) return false;
+            _uow.Operations.Remove(operation);
+            await _uow.SaveChangesAsync();
+            return true;
         }
     }
 }

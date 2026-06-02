@@ -28,6 +28,13 @@ namespace KooliProjekt.Data.Repositories
         public IOperationRepository OperationRepository { get; private set; }
         public IOperationTypeRepository OperationTypeRepository { get; private set; }
 
+        public ICustomerRepository Customers => CustomerRepository;
+        public IVehicleRepository Vehicles => VehicleRepository;
+        public IInvoiceRepository Invoices => InvoiceRepository;
+        public IInvoiceLineRepository InvoiceLines => InvoiceLineRepository;
+        public IOperationRepository Operations => OperationRepository;
+        public IOperationTypeRepository OperationTypes => OperationTypeRepository;
+
         public async Task BeginTransaction()
         {
             await _context.Database.BeginTransactionAsync();
@@ -41,6 +48,11 @@ namespace KooliProjekt.Data.Repositories
         public async Task Rollback()
         {
             await _context.Database.RollbackTransactionAsync();
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
         }
     }
 }

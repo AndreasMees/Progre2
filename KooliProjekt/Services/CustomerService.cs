@@ -15,42 +15,35 @@ namespace KooliProjekt.Services
 
         public async Task<PagedResult<Customer>> List(int page, int pageSize, CustomerSearch search = null)
         {
-            return await _uow.CustomerRepository.List(page, pageSize, search);
+            return await _uow.Customers.List(page, pageSize, search);
         }
 
         public async Task<Customer> Get(int id)
         {
-            return await _uow.CustomerRepository.Get(id);
+            return await _uow.Customers.Get(id);
         }
 
-        public async Task Save(Customer customer)
+        public async Task<bool> Save(Customer customer)
         {
-            await _uow.BeginTransaction();
-            try
-            {
-                await _uow.CustomerRepository.Save(customer);
-                await _uow.Commit();
-            }
-            catch
-            {
-                await _uow.Rollback();
-                throw;
-            }
+            _uow.Customers.Add(customer);
+            await _uow.SaveChangesAsync();
+            return true;
         }
 
-        public async Task Delete(int id)
+        public async Task<bool> Update(Customer customer)
         {
-            await _uow.BeginTransaction();
-            try
-            {
-                await _uow.CustomerRepository.Delete(id);
-                await _uow.Commit();
-            }
-            catch
-            {
-                await _uow.Rollback();
-                throw;
-            }
+            _uow.Customers.Update(customer);
+            await _uow.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> Delete(int id)
+        {
+            var customer = await _uow.Customers.Get(id);
+            if (customer == null) return false;
+            _uow.Customers.Remove(customer);
+            await _uow.SaveChangesAsync();
+            return true;
         }
     }
 }

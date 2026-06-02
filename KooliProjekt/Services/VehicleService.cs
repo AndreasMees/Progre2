@@ -15,42 +15,35 @@ namespace KooliProjekt.Services
 
         public async Task<PagedResult<Vehicle>> List(int page, int pageSize, VehicleSearch search = null)
         {
-            return await _uow.VehicleRepository.List(page, pageSize, search);
+            return await _uow.Vehicles.List(page, pageSize, search);
         }
 
         public async Task<Vehicle> Get(int id)
         {
-            return await _uow.VehicleRepository.Get(id);
+            return await _uow.Vehicles.Get(id);
         }
 
-        public async Task Save(Vehicle vehicle)
+        public async Task<bool> Save(Vehicle vehicle)
         {
-            await _uow.BeginTransaction();
-            try
-            {
-                await _uow.VehicleRepository.Save(vehicle);
-                await _uow.Commit();
-            }
-            catch
-            {
-                await _uow.Rollback();
-                throw;
-            }
+            _uow.Vehicles.Add(vehicle);
+            await _uow.SaveChangesAsync();
+            return true;
         }
 
-        public async Task Delete(int id)
+        public async Task<bool> Update(Vehicle vehicle)
         {
-            await _uow.BeginTransaction();
-            try
-            {
-                await _uow.VehicleRepository.Delete(id);
-                await _uow.Commit();
-            }
-            catch
-            {
-                await _uow.Rollback();
-                throw;
-            }
+            _uow.Vehicles.Update(vehicle);
+            await _uow.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> Delete(int id)
+        {
+            var vehicle = await _uow.Vehicles.Get(id);
+            if (vehicle == null) return false;
+            _uow.Vehicles.Remove(vehicle);
+            await _uow.SaveChangesAsync();
+            return true;
         }
     }
 }

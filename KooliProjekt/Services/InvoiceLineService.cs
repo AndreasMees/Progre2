@@ -15,42 +15,35 @@ namespace KooliProjekt.Services
 
         public async Task<PagedResult<InvoiceLine>> List(int page, int pageSize, InvoiceLineSearch search = null)
         {
-            return await _uow.InvoiceLineRepository.List(page, pageSize, search);
+            return await _uow.InvoiceLines.List(page, pageSize, search);
         }
 
         public async Task<InvoiceLine> Get(int id)
         {
-            return await _uow.InvoiceLineRepository.Get(id);
+            return await _uow.InvoiceLines.Get(id);
         }
 
-        public async Task Save(InvoiceLine invoiceLine)
+        public async Task<bool> Save(InvoiceLine invoiceLine)
         {
-            await _uow.BeginTransaction();
-            try
-            {
-                await _uow.InvoiceLineRepository.Save(invoiceLine);
-                await _uow.Commit();
-            }
-            catch
-            {
-                await _uow.Rollback();
-                throw;
-            }
+            _uow.InvoiceLines.Add(invoiceLine);
+            await _uow.SaveChangesAsync();
+            return true;
         }
 
-        public async Task Delete(int id)
+        public async Task<bool> Update(InvoiceLine invoiceLine)
         {
-            await _uow.BeginTransaction();
-            try
-            {
-                await _uow.InvoiceLineRepository.Delete(id);
-                await _uow.Commit();
-            }
-            catch
-            {
-                await _uow.Rollback();
-                throw;
-            }
+            _uow.InvoiceLines.Update(invoiceLine);
+            await _uow.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> Delete(int id)
+        {
+            var invoiceLine = await _uow.InvoiceLines.Get(id);
+            if (invoiceLine == null) return false;
+            _uow.InvoiceLines.Remove(invoiceLine);
+            await _uow.SaveChangesAsync();
+            return true;
         }
     }
 }

@@ -15,42 +15,35 @@ namespace KooliProjekt.Services
 
         public async Task<PagedResult<Invoice>> List(int page, int pageSize, InvoiceSearch search = null)
         {
-            return await _uow.InvoiceRepository.List(page, pageSize, search);
+            return await _uow.Invoices.List(page, pageSize, search);
         }
 
         public async Task<Invoice> Get(int id)
         {
-            return await _uow.InvoiceRepository.Get(id);
+            return await _uow.Invoices.Get(id);
         }
 
-        public async Task Save(Invoice invoice)
+        public async Task<bool> Save(Invoice invoice)
         {
-            await _uow.BeginTransaction();
-            try
-            {
-                await _uow.InvoiceRepository.Save(invoice);
-                await _uow.Commit();
-            }
-            catch
-            {
-                await _uow.Rollback();
-                throw;
-            }
+            _uow.Invoices.Add(invoice);
+            await _uow.SaveChangesAsync();
+            return true;
         }
 
-        public async Task Delete(int id)
+        public async Task<bool> Update(Invoice invoice)
         {
-            await _uow.BeginTransaction();
-            try
-            {
-                await _uow.InvoiceRepository.Delete(id);
-                await _uow.Commit();
-            }
-            catch
-            {
-                await _uow.Rollback();
-                throw;
-            }
+            _uow.Invoices.Update(invoice);
+            await _uow.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> Delete(int id)
+        {
+            var invoice = await _uow.Invoices.Get(id);
+            if (invoice == null) return false;
+            _uow.Invoices.Remove(invoice);
+            await _uow.SaveChangesAsync();
+            return true;
         }
     }
 }

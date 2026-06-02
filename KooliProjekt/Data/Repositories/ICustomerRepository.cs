@@ -6,7 +6,8 @@ namespace KooliProjekt.Data.Repositories
     {
         Task<PagedResult<Customer>> List(int page, int pageSize, CustomerSearch search = null);
         Task<Customer> Get(int id);
-        Task Save(Customer customer);
-        Task Delete(int id);
+        Customer Add(Customer customer);
+        Customer Update(Customer customer);
+        Customer Remove(Customer customer);
     }
 }

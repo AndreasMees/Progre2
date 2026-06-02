@@ -29,5 +29,6 @@ namespace KooliProjekt.Data.Repositories
                 .Include(i => i.Invoice)
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
+
     }
 }

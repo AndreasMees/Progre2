@@ -7,7 +7,8 @@ namespace KooliProjekt.Services
     {
         Task<PagedResult<Vehicle>> List(int page, int pageSize, VehicleSearch search = null);
         Task<Vehicle> Get(int id);
-        Task Save(Vehicle vehicle);
-        Task Delete(int id);
+        Task<bool> Save(Vehicle vehicle);
+        Task<bool> Update(Vehicle vehicle);
+        Task<bool> Delete(int id);
     }
 }

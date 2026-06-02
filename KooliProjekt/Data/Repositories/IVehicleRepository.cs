@@ -6,7 +6,8 @@ namespace KooliProjekt.Data.Repositories
     {
         Task<PagedResult<Vehicle>> List(int page, int pageSize, VehicleSearch search = null);
         Task<Vehicle> Get(int id);
-        Task Save(Vehicle vehicle);
-        Task Delete(int id);
+        Vehicle Add(Vehicle vehicle);
+        Vehicle Update(Vehicle vehicle);
+        Vehicle Remove(Vehicle vehicle);
     }
 }

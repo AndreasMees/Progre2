@@ -7,7 +7,8 @@ namespace KooliProjekt.Services
     {
         Task<PagedResult<Operation>> List(int page, int pageSize, OperationSearch search = null);
         Task<Operation> Get(int id);
-        Task Save(Operation operation);
-        Task Delete(int id);
+        Task<bool> Save(Operation operation);
+        Task<bool> Update(Operation operation);
+        Task<bool> Delete(int id);
     }
 }
